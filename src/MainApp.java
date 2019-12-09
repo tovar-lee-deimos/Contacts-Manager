@@ -1,9 +1,11 @@
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -21,6 +23,7 @@ public class MainApp {
         ArrayList <String> names = new ArrayList<>();
         ArrayList <String> phone = new ArrayList<>();
         ArrayList<String> compare = new ArrayList<>();
+        ArrayList <String> numbers = new ArrayList<>();
 
 
 
@@ -43,6 +46,7 @@ public class MainApp {
                     names.add(each[0]);
                     phone.add(each[1]);
                     compare.add(each[0].toLowerCase());
+                    numbers.add(each[1]);
                 }
                 for (int i = 0; i < phone.size(); i++){
                     if (phone.get(i).length() == 7){
@@ -72,32 +76,67 @@ public class MainApp {
                 case 2:
                     String newName;
                     System.out.println("Enter the name of the new contact:");
+
                     newName = scanner.nextLine();
+
+
                     if (compare.contains(newName.toLowerCase())){
-                        System.out.println("There's already a contact named " + names.get(compare.indexOf(newName)) +
+                        System.out.println("There's already a contact named " + names.get(compare.indexOf(newName.toLowerCase())) +
                                 ". Do you want to overwrite it?" );
                         if (yesNo()){
-                            System.out.println("Enter the number that will replace: ");
-                            String changeNumber = scanner.next();
-                            phone.set(compare.indexOf(newName), changeNumber);
+                            String changeNumber;
+                            do {
+                                System.out.println("Enter the number of the new contact:");
+                                changeNumber = scanner.next();
+                                scanner.nextLine();
+                                if (changeNumber.length() != 7 && changeNumber.length() != 10){
+                                    System.out.println("You need to input a correct phone number.");
+                                }
+                            } while (changeNumber.length() != 7 && changeNumber.length() != 10);
+                            numbers.set(compare.indexOf(newName.toLowerCase()), changeNumber);
+
+                            if (changeNumber.length() == 7){
+                                changeNumber = changeNumber.substring(0,3) + "-" + changeNumber.substring(3);
+                            }
+                            else {
+                                changeNumber = changeNumber.substring(0,3) + "-" + changeNumber.substring(3, 6) + "-" + changeNumber.substring(6);
+                            }
+                            phone.set(compare.indexOf(newName.toLowerCase()) , changeNumber);
+                            System.out.println("Contact has been edited.");
+                            break;
+
+                        }
+                        else {
+                            System.out.println("Contact list remains the same.");
+                            break;
                         }
                     }
-                    names.add(newName);
-                    compare.add(newName);
+
                     String newNumber;
                     do {
                         System.out.println("Enter the number of the new contact:");
                         newNumber = scanner.next();
+                        scanner.nextLine();
                         if (newNumber.length() != 7 && newNumber.length() != 10){
                             System.out.println("You need to input a correct phone number.");
                         }
                     } while (newNumber.length() != 7 && newNumber.length() != 10);
+                    numbers.add(newNumber);
+
                     if (newNumber.length() == 7){
                         newNumber = newNumber.substring(0,3) + "-" + newNumber.substring(3);
                     }
                     else {
                         newNumber = newNumber.substring(0,3) + "-" + newNumber.substring(3, 6) + "-" + newNumber.substring(6);
                     }
+
+                    if (phone.contains(newNumber)){
+                        System.out.println("Error... There is already a name with that number.");
+                        break;
+                    }
+                    names.add(newName);
+                    compare.add(newName);
+
                     phone.add(newNumber);
                     System.out.println("Contact is added.");
                     break;
@@ -121,6 +160,7 @@ public class MainApp {
                         names.remove(names.get(compare.indexOf(delete)));
                         phone.remove(phone.get(compare.indexOf(delete)));
                         compare.remove(compare.get(compare.indexOf(delete)));
+                        System.out.println("Contact was deleted");
                     }
                     else {
                         System.out.println("That name was not found.");
@@ -129,6 +169,17 @@ public class MainApp {
             }
 
         } while (menu != 5);
+        System.out.println("Writing to the file...");
+        list.clear();
+        for (int i =0; i < names.size(); i++){
+            list.add(names.get(i) + ": " + numbers.get(i));
+            try {
+                Files.write(path, list);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     public static int appMenu(){
